@@ -1,0 +1,91 @@
+# Mapping class Roboflow/asli menjadi 5 kelas final.
+# Kiri  = nama class pada data.yaml asli Roboflow.
+# Kanan = nama class final.
+# Gunakan __skip__ untuk class yang bukan sampah / class error.
+
+final_names:
+  - plastik
+  - kertas
+  - logam
+  - organik
+  - lainnya
+
+mapping:
+  # plastik
+  plastik: plastik
+  plastic: plastik
+  botol plastik: plastik
+  plastic bottle: plastik
+  bottle: plastik
+  botol: plastik
+  kantong plastik: plastik
+  plastic bag: plastik
+  kresek: plastik
+
+  # kertas
+  kertas: kertas
+  paper: kertas
+  kardus: kertas
+  cardboard: kertas
+  karton: kertas
+  carton: kertas
+  koran: kertas
+  newspaper: kertas
+  buku: kertas
+  book: kertas
+
+  # logam
+  logam: logam
+  metal: logam
+  kaleng: logam
+  can: logam
+  cans: logam
+  aluminum can: logam
+  aluminium can: logam
+  alumunium foil: logam
+  aluminium foil: logam
+  aluminum foil: logam
+  alumun foil: logam
+  alumunium: logam
+  aluminium: logam
+  foil: logam
+
+  # organik
+  organik: organik
+  organic: organik
+  sampah organik: organik
+  sampah makanan: organik
+  food waste: organik
+  sisa makanan: organik
+  daun: organik
+  leaf: organik
+  leaves: organik
+  kulit buah: organik
+  buah: organik
+
+  # lainnya
+  lainnya: lainnya
+  lainya: lainnya
+  other: lainnya
+  others: lainnya
+  trash: lainnya
+  sampah lain: lainnya
+  kaca: lainnya
+  glass: lainnya
+  gabus sintetis: lainnya
+  gabus: lainnya
+  styrofoam: lainnya
+  styrofoam cup: lainnya
+  kemasan: lainnya
+  packaging: lainnya
+  bungkus: lainnya
+  wrapper: lainnya
+  kain: lainnya
+  cloth: lainnya
+  baju: lainnya
+  clothes: lainnya
+
+  # kemungkinan class error/noise dari Roboflow Universe, jangan dipakai
+  "* annotate and create datasets": __skip__
+  "* anotate and create datasets": __skip__
+  "* understand and search unstructured image data": __skip__

@@ -1,0 +1,8 @@
+# Kelas final yang dipakai untuk training YOLOv8 detection.
+# Urutan class_id ini akan dipakai di data.yaml final.
+names:
+  0: plastik
+  1: kertas
+  2: logam
+  3: organik
+  4: lainnya
