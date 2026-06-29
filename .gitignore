@@ -14,8 +14,6 @@ env/
 datasets/
 outputs/
 
-# Training output
-runs/
 
 # Cache
 *.cache
