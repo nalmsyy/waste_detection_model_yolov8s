@@ -6,28 +6,33 @@ import cv2
 from ultralytics import YOLO
 
 
-# Threshold confidence khusus per kelas
-# Tujuan: organik dibuat lebih tinggi karena sering false positive
+# =========================================================
+# CONFIDENCE KHUSUS PER KELAS - EKSPERIMEN 3
+# Dataset Roboflow asli:
+# kertas, logam, pakaian, plastik, tumbuhan
+# =========================================================
 CLASS_CONF = {
-    "plastik": 0.10,
-    "kertas": 0.25,
-    "logam": 0.25,
-    "lainnya": 0.35,
+    "kertas": 0.30,
+    "logam": 0.30,
+    "pakaian": 0.40,
+    "plastik": 0.20,
+    "tumbuhan": 0.40,
 }
 
 
 # Warna bounding box per kelas
 CLASS_COLORS = {
-    "plastik": (0, 255, 255),
     "kertas": (255, 255, 0),
     "logam": (255, 0, 255),
-    "lainnya": (0, 165, 255),
+    "pakaian": (0, 165, 255),
+    "plastik": (0, 255, 255),
+    "tumbuhan": (0, 255, 0),
 }
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Deteksi Sampah YOLOv8 5 Kelas menggunakan kamera OpenCV"
+        description="Deteksi Sampah YOLOv8 Eksperimen 3 menggunakan kamera OpenCV"
     )
 
     parser.add_argument(
@@ -41,13 +46,13 @@ def parse_args():
         "--camera",
         type=int,
         default=0,
-        help="Index kamera. Biasanya 0 atau 1",
+        help="Index kamera. Biasanya 0 untuk webcam laptop",
     )
 
     parser.add_argument(
         "--conf",
         type=float,
-        default=0.25,
+        default=0.20,
         help="Confidence awal YOLO. Filter akhir tetap memakai CLASS_CONF",
     )
 
@@ -81,7 +86,7 @@ def parse_args():
     parser.add_argument(
         "--max-area",
         type=float,
-        default=0.45,
+        default=0.60,
         help="Maksimal rasio luas box terhadap frame. Box terlalu besar akan dibuang",
     )
 
@@ -136,26 +141,31 @@ def main():
     print("Memuat model...")
     model = YOLO(args.model)
 
-    print("Daftar kelas model:")
+    print("\nDaftar kelas model:")
     for class_id, class_name in model.names.items():
         print(f"{class_id}: {class_name}")
 
-    cap = cv2.VideoCapture(args.camera)
+    print("\nConfidence per kelas:")
+    for class_name, conf_value in CLASS_CONF.items():
+        print(f"{class_name}: {conf_value}")
+
+    # CAP_DSHOW lebih stabil untuk Windows
+    cap = cv2.VideoCapture(args.camera, cv2.CAP_DSHOW)
 
     if not cap.isOpened():
         print(f"Kamera index {args.camera} tidak bisa dibuka.")
-        print("Coba gunakan --camera 1")
+        print("Coba gunakan --camera 0 atau --camera 1")
         return
 
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, args.width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, args.height)
 
-    window_name = "Deteksi Sampah YOLOv8 - 5 Kelas"
+    window_name = "Deteksi Sampah YOLOv8 - Eksperimen 3"
 
     prev_time = time.time()
     fps = 0.0
 
-    print("Kamera aktif. Tekan 'q' untuk keluar.")
+    print("\nKamera aktif. Tekan 'q' untuk keluar.")
 
     while True:
         ret, frame = cap.read()
@@ -168,8 +178,8 @@ def main():
         frame_area = w * h
 
         # Inference YOLO
-        # conf dibuat rendah dulu supaya semua kandidat masuk,
-        # lalu kita filter manual per kelas di bawah.
+        # conf dibuat cukup rendah supaya kandidat objek masuk dulu,
+        # lalu disaring manual berdasarkan CLASS_CONF.
         results = model(
             frame,
             conf=args.conf,
@@ -186,9 +196,6 @@ def main():
             cls_id = int(box.cls[0])
             conf = float(box.conf[0])
             class_name = names[cls_id]
-            
-            if class_name == "organik":
-                continue
 
             x1, y1, x2, y2 = map(int, box.xyxy[0])
 
@@ -201,19 +208,18 @@ def main():
             box_area = box_w * box_h
             area_ratio = box_area / frame_area
 
-            # 1. Threshold khusus per kelas
-            min_conf = CLASS_CONF.get(class_name, 0.50)
+            # Ambil threshold khusus sesuai kelas
+            min_conf = CLASS_CONF.get(class_name, 0.40)
 
+            # Buang prediksi yang confidence-nya kurang dari threshold kelas
             if conf < min_conf:
                 continue
 
-            # 2. Buang box terlalu besar
-            # Biasanya false positive pada tembok, tubuh, pintu, background.
+            # Buang box yang terlalu besar
             if area_ratio > args.max_area:
                 continue
 
-            # 3. Buang box terlalu kecil
-            # Biasanya noise.
+            # Buang box yang terlalu kecil
             if area_ratio < args.min_area:
                 continue
 
@@ -288,7 +294,7 @@ def main():
                 bg_color=(0, 0, 0),
             )
 
-        # FPS
+        # Tampilkan FPS
         if args.show_fps:
             fps_text = f"FPS: {fps:.1f}"
             draw_text_with_bg(

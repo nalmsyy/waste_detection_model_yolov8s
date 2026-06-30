@@ -1,41 +1,134 @@
-@"
-# Python
+# =========================================================
+# PYTHON
+# =========================================================
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.pyd
+*.so
+*.egg
+*.egg-info/
+.eggs/
+build/
+dist/
+site/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
-# Virtual environment
+
+# =========================================================
+# VIRTUAL ENVIRONMENT
+# =========================================================
 .venv/
 venv/
 env/
+ENV/
 
-# Dataset besar
+
+# =========================================================
+# ENVIRONMENT / SECRET FILES
+# =========================================================
+.env
+.env.*
+*.env
+roboflow.json
+.roboflow/
+.roboflow*
+api_key.txt
+apikey.txt
+secrets.json
+credentials.json
+
+
+# =========================================================
+# IDE / EDITOR
+# =========================================================
+.vscode/
+.idea/
+*.code-workspace
+
+
+# =========================================================
+# OS FILES
+# =========================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+
+# =========================================================
+# DATASET FILES
+# Jangan upload dataset ke GitHub karena ukurannya besar
+# =========================================================
 datasets/
-outputs/
-
-
-# Cache
-*.cache
-.cache/
-
-# Model pretrained YOLO bawaan
-yolov8n.pt
-yolov8s.pt
-yolov8m.pt
-yolo26n.pt
-
-# ZIP / archive
+data/
+dataset/
 *.zip
 *.rar
 *.7z
+*.tar
+*.tar.gz
 
-# OS / IDE
-.DS_Store
-.vscode/
-.idea/
 
-# Roboflow
-README.roboflow.txt
-README.dataset.txt
-"@ | Set-Content .gitignore
+# =========================================================
+# YOLO / ULTRALYTICS OUTPUT
+# Hasil training dan evaluasi jangan dimasukkan GitHub
+# =========================================================
+runs/
+outputs/
+wandb/
+mlruns/
+tensorboard/
+*.cache
+
+
+# =========================================================
+# MODEL WEIGHTS
+# File model bisa besar. Simpan di Google Drive / Release kalau perlu
+# =========================================================
+*.pt
+*.pth
+*.onnx
+*.engine
+*.tflite
+*.pb
+*.weights
+
+
+# =========================================================
+# GENERATED IMAGES / VIDEOS
+# Output prediksi, screenshot, video testing
+# =========================================================
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+
+
+# =========================================================
+# NOTEBOOK CHECKPOINT
+# =========================================================
+.ipynb_checkpoints/
+
+
+# =========================================================
+# LOG FILES
+# =========================================================
+*.log
+logs/
+
+
+# =========================================================
+# KEEP EMPTY FOLDERS IF NEEDED
+# =========================================================
+!src/
+!scripts/
+!configs/
+!notebooks/
+!README.md
+!requirements.txt
+!.gitignore
