@@ -1,499 +1,483 @@
-# Deteksi Sampah YOLOv8 + OpenCV — 5 Kelas
+# Deteksi Sampah Menggunakan YOLOv8 dan YOLO26
 
-Repo ini dibuat untuk proyek deteksi sampah menggunakan **YOLOv8 Object Detection** dan integrasi realtime dengan **kamera OpenCV**.
+Project ini merupakan sistem deteksi objek sampah berbasis computer vision menggunakan model YOLO. Sistem dilatih menggunakan dataset deteksi sampah berformat YOLO dan dapat dijalankan secara real-time menggunakan kamera laptop maupun kamera HP yang terhubung ke PC.
 
-Dataset yang dipakai diarahkan dari Roboflow Universe:
-
-```text
-https://universe.roboflow.com/internship-rpdlx/deteksi-sampah-r4w18
-```
-
-> Catatan: dataset tidak dimasukkan langsung ke repo karena download Roboflow membutuhkan akun/API key. Repo ini sudah menyediakan script untuk download otomatis.
+Project ini dibuat untuk membandingkan beberapa eksperimen model deteksi objek, mulai dari YOLOv8s hingga YOLO26m.
 
 ---
 
-## 1. Kelas Final
+## Deskripsi Project
 
-Agar tidak membingungkan, kelas dibuat menjadi 5 saja:
+Sistem ini digunakan untuk mendeteksi beberapa jenis objek sampah pada gambar atau video kamera. Model yang digunakan berbasis YOLO karena mampu melakukan deteksi objek secara real-time dengan menghasilkan class prediction dan bounding box.
+
+Pada project ini dilakukan beberapa eksperimen:
+
+1. Eksperimen 1 menggunakan dataset gabungan 5 kelas.
+2. Eksperimen 2 menggunakan dataset final 4 kelas.
+3. Eksperimen 3 menggunakan dataset asli Roboflow dengan model YOLOv8s.
+4. Eksperimen 4 menggunakan dataset asli Roboflow dengan model YOLO26m.
+
+---
+
+## Fitur
+
+- Training model deteksi sampah menggunakan YOLO.
+- Evaluasi model menggunakan Precision, Recall, mAP50, dan mAP50-95.
+- Menampilkan confusion matrix dan kurva evaluasi.
+- Deteksi gambar menggunakan model hasil training.
+- Deteksi real-time menggunakan OpenCV.
+- Mendukung kamera laptop dan kamera HP sebagai webcam.
+- Membandingkan beberapa eksperimen model.
+
+---
+
+## Dataset
+
+Dataset yang digunakan berasal dari Roboflow Universe.
+
+Dataset untuk Eksperimen 3 dan Eksperimen 4:
 
 ```text
-0: plastik
-1: kertas
-2: logam
-3: organik
-4: lainnya
+Roboflow Universe
+Project: latihan-deteksi-objek/deteksi-sampah-8p8u5
+Format : YOLOv8
+Version: 3
 ```
 
-Penjelasan kelas:
+Command download dataset:
 
-| Kelas | Contoh objek |
+```bash
+roboflow download -f yolov8 -l ./datasets/rf_exp3_deteksi_sampah_raw latihan-deteksi-objek/deteksi-sampah-8p8u5/3
+```
+
+Kelas asli dataset:
+
+| No | Kelas |
+|---:|---|
+| 0 | kertas |
+| 1 | logam |
+| 2 | pakaian |
+| 3 | plastik |
+| 4 | tumbuhan |
+
+---
+
+## Eksperimen Model
+
+### Eksperimen 1 - YOLOv8s Dataset 5 Kelas
+
+Dataset awal terdiri dari 5 kelas:
+
+| Kelas | Jumlah Instance |
+|---|---:|
+| plastik | 3.140 |
+| kertas | 6.490 |
+| logam | 2.891 |
+| organik | 38 |
+| lainnya | 3.979 |
+
+Hasil evaluasi:
+
+| Metric | Nilai |
+|---|---:|
+| Precision | 0.938 |
+| Recall | 0.885 |
+| mAP50 | 0.930 |
+| mAP50-95 | 0.827 |
+
+Catatan:
+
+Kelas organik memiliki jumlah data yang sangat sedikit, yaitu hanya 38 instance. Hal ini menyebabkan model kurang stabil ketika diuji pada kamera real-time karena sering terjadi false positive pada kelas organik.
+
+---
+
+### Eksperimen 2 - YOLOv8s Dataset 4 Kelas
+
+Dataset final 4 kelas terdiri dari:
+
+| Kelas | Jumlah Instance |
+|---|---:|
+| plastik | 2.930 |
+| kertas | 6.149 |
+| logam | 2.730 |
+| lainnya | 3.822 |
+
+Hasil evaluasi:
+
+| Metric | Nilai |
+|---|---:|
+| Precision | 0.985 |
+| Recall | 0.964 |
+| mAP50 | 0.979 |
+| mAP50-95 | 0.894 |
+
+Catatan:
+
+Eksperimen 2 menghasilkan performa terbaik secara keseluruhan berdasarkan nilai mAP50-95. Model ini lebih stabil dibandingkan eksperimen 1 karena kelas organik yang bermasalah dihapus dari dataset final.
+
+---
+
+### Eksperimen 3 - YOLOv8s Dataset Asli Roboflow
+
+Eksperimen 3 menggunakan dataset asli Roboflow tanpa penggabungan atau perubahan kelas.
+
+Model yang digunakan:
+
+```text
+YOLOv8s
+Pretrained weight: yolov8s.pt
+```
+
+Konfigurasi training:
+
+| Konfigurasi | Nilai |
 |---|---|
-| plastik | botol plastik, kantong plastik, bungkus plastik |
-| kertas | kertas, koran, kardus, karton |
-| logam | kaleng, aluminium foil, tutup logam |
-| organik | daun, sisa makanan, kulit buah, sampah alami |
-| lainnya | kaca, gabus, kain, kemasan campuran, objek lain |
+| Model | YOLOv8s |
+| Epoch | 120 |
+| Image size | 640 |
+| Batch size | 16 |
+| Device | CUDA GPU |
+| Optimizer | AdamW |
+| Dataset | rf_exp3_deteksi_sampah_raw |
 
-Mapping class Roboflow ke 5 kelas ini ada di:
+Hasil evaluasi:
+
+| Kelas | Images | Instances | Precision | Recall | mAP50 | mAP50-95 |
+|---|---:|---:|---:|---:|---:|---:|
+| all | 524 | 526 | 0.969 | 0.952 | 0.978 | 0.822 |
+| kertas | 106 | 108 | 0.935 | 0.933 | 0.942 | 0.869 |
+| logam | 106 | 106 | 0.958 | 0.953 | 0.984 | 0.821 |
+| pakaian | 104 | 104 | 1.000 | 0.993 | 0.995 | 0.825 |
+| plastik | 104 | 104 | 0.950 | 0.904 | 0.974 | 0.760 |
+| tumbuhan | 104 | 104 | 1.000 | 0.976 | 0.995 | 0.834 |
+
+Model terbaik:
 
 ```text
-configs/class_mapping.yaml
+runs/detect/eksperimen3_dataset_asli_roboflow_yolov8s/weights/best.pt
 ```
 
 ---
 
-## 2. Struktur Repo
+### Eksperimen 4 - YOLO26m Dataset Asli Roboflow
+
+Eksperimen 4 menggunakan dataset yang sama dengan Eksperimen 3, tetapi model diganti menjadi YOLO26m.
+
+Model yang digunakan:
+
+```text
+YOLO26m
+Pretrained weight: yolo26m.pt
+```
+
+Konfigurasi training:
+
+| Konfigurasi | Nilai |
+|---|---|
+| Model | YOLO26m |
+| Epoch | 120 |
+| Image size | 640 |
+| Batch size | 8 |
+| Device | CUDA GPU |
+| Dataset | rf_exp3_deteksi_sampah_raw |
+| Waktu training | 1.857 jam |
+
+Hasil evaluasi:
+
+| Kelas | Images | Instances | Precision | Recall | mAP50 | mAP50-95 |
+|---|---:|---:|---:|---:|---:|---:|
+| all | 524 | 526 | 0.973 | 0.955 | 0.984 | 0.843 |
+| kertas | 106 | 108 | 0.961 | 0.889 | 0.956 | 0.898 |
+| logam | 106 | 106 | 0.946 | 0.989 | 0.991 | 0.841 |
+| pakaian | 104 | 104 | 0.990 | 0.979 | 0.995 | 0.859 |
+| plastik | 104 | 104 | 0.967 | 0.933 | 0.984 | 0.777 |
+| tumbuhan | 104 | 104 | 1.000 | 0.986 | 0.995 | 0.838 |
+
+Model terbaik:
+
+```text
+runs/detect/eksperimen4_dataset_asli_roboflow_yolo26m-2/weights/best.pt
+```
+
+---
+
+## Perbandingan Eksperimen
+
+| Eksperimen | Dataset | Model | Precision | Recall | mAP50 | mAP50-95 |
+|---|---|---|---:|---:|---:|---:|
+| Eksperimen 1 | Dataset 5 kelas | YOLOv8s | 0.938 | 0.885 | 0.930 | 0.827 |
+| Eksperimen 2 | Dataset 4 kelas | YOLOv8s | 0.985 | 0.964 | 0.979 | 0.894 |
+| Eksperimen 3 | Dataset asli Roboflow | YOLOv8s | 0.969 | 0.952 | 0.978 | 0.822 |
+| Eksperimen 4 | Dataset asli Roboflow | YOLO26m | 0.973 | 0.955 | 0.984 | 0.843 |
+
+Kesimpulan:
+
+- Eksperimen 2 memiliki nilai mAP50-95 tertinggi, yaitu 0.894.
+- Eksperimen 4 lebih unggul dibanding Eksperimen 3 karena menggunakan YOLO26m.
+- YOLO26m memberikan peningkatan akurasi dibanding YOLOv8s pada dataset yang sama.
+- YOLOv8s lebih ringan dan lebih cepat untuk real-time camera.
+- YOLO26m lebih kuat dari sisi akurasi, tetapi membutuhkan waktu inference lebih besar.
+
+---
+
+## Struktur Folder
 
 ```text
 deteksi_sampah_yolov8_5kelas_repo/
-├── src/
-│   ├── download_roboflow_dataset.py
-│   ├── inspect_classes.py
-│   ├── merge_classes_to_5.py
-│   ├── check_dataset.py
-│   ├── train.py
-│   ├── evaluate.py
-│   ├── predict_image.py
-│   ├── webcam_detection.py
-│   ├── export_model.py
-│   └── common.py
-│
 ├── configs/
-│   ├── classes_5.yaml
-│   └── class_mapping.yaml
-│
-├── datasets/
-│   ├── rf_deteksi_sampah_raw/
-│   └── sampah_5kelas/
-│
-├── scripts/
-│   ├── setup_windows.bat
-│   ├── run_download_windows.bat
-│   ├── run_merge_windows.bat
-│   ├── run_train_windows.bat
-│   └── run_camera_windows.bat
-│
+├── datasets/                  # tidak diupload ke GitHub
+├── models/
 ├── notebooks/
-│   └── train_colab.ipynb
-│
-├── requirements.txt
-├── DATASET_DOWNLOAD_INSTRUCTIONS.md
-└── README.md
+├── outputs/                   # tidak diupload ke GitHub
+├── runs/                      # tidak diupload ke GitHub
+├── scripts/
+├── src/
+│   ├── check_camera_index.py
+│   ├── webcam_detection.py
+│   ├── check_dataset.py
+│   └── preview_yolo_labels.py
+├── .gitignore
+├── README.md
+└── requirements.txt
 ```
 
----
-
-# LANGKAH SETUP DI WINDOWS
-
-## Langkah 1 — Extract ZIP
-
-Extract repo ZIP ke folder kerja kamu, misalnya:
+Folder berikut tidak dimasukkan ke GitHub karena ukurannya besar:
 
 ```text
-D:\Tugas Alif\Semester 4\ML\deteksi_sampah_yolov8_5kelas_repo
+.venv/
+datasets/
+runs/
+outputs/
+*.pt
+*.zip
 ```
-
-Lalu buka folder tersebut di VS Code / terminal.
 
 ---
 
-## Langkah 2 — Buat virtual environment
+## Instalasi
 
-Buka terminal di folder repo, lalu jalankan:
+Clone repository:
 
-```bat
+```bash
+git clone https://github.com/username/nama-repository.git
+cd nama-repository
+```
+
+Buat virtual environment:
+
+```bash
 python -m venv .venv
 ```
 
-Aktifkan virtual environment:
+Aktifkan virtual environment di Windows PowerShell:
 
-### CMD
-
-```bat
+```bash
 .venv\Scripts\activate
 ```
 
-### PowerShell
+Install library:
 
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
-Jika PowerShell menolak eksekusi script, jalankan:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.venv\Scripts\Activate.ps1
-```
-
----
-
-## Langkah 3 — Install library
-
-```bat
-python -m pip install --upgrade pip
+```bash
 pip install -r requirements.txt
 ```
 
-Cek instalasi YOLO:
+Install atau update Ultralytics:
 
-```bat
+```bash
+pip install -U ultralytics
+```
+
+Cek instalasi:
+
+```bash
 yolo checks
 ```
 
----
+Cek CUDA GPU:
 
-# LANGKAH DOWNLOAD DATASET ROBOFLOW
-
-## Langkah 4 — Ambil Roboflow API Key
-
-1. Login ke Roboflow.
-2. Masuk ke **Settings**.
-3. Cari bagian **Roboflow API**.
-4. Copy API key kamu.
-
-Jangan upload API key ke GitHub.
-
----
-
-## Langkah 5 — Set API Key
-
-### Kalau pakai CMD
-
-```bat
-set ROBOFLOW_API_KEY=ISI_API_KEY_KAMU
-```
-
-### Kalau pakai PowerShell
-
-```powershell
-$env:ROBOFLOW_API_KEY="ISI_API_KEY_KAMU"
+```bash
+python -c "import torch; print(torch.__version__); print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0))"
 ```
 
 ---
 
-## Langkah 6 — Download dataset dari Roboflow
+## Download Dataset Roboflow
 
-```bat
-python src/download_roboflow_dataset.py --overwrite
+Login Roboflow CLI:
+
+```bash
+roboflow login
 ```
 
-Default script ini memakai:
+Download dataset:
+
+```bash
+roboflow download -f yolov8 -l ./datasets/rf_exp3_deteksi_sampah_raw latihan-deteksi-objek/deteksi-sampah-8p8u5/3
+```
+
+Cek isi dataset:
+
+```bash
+type datasets\rf_exp3_deteksi_sampah_raw\data.yaml
+```
+
+---
+
+## Training Model
+
+### Training Eksperimen 3 - YOLOv8s
+
+```bash
+yolo task=detect mode=train model=yolov8s.pt data=datasets/rf_exp3_deteksi_sampah_raw/data.yaml epochs=120 imgsz=640 batch=16 device=0 workers=2 name=eksperimen3_dataset_asli_roboflow_yolov8s patience=30 optimizer=AdamW lr0=0.001 cos_lr=True close_mosaic=10 cache=False
+```
+
+### Training Eksperimen 4 - YOLO26m
+
+```bash
+yolo task=detect mode=train model=yolo26m.pt data=datasets/rf_exp3_deteksi_sampah_raw/data.yaml epochs=120 imgsz=640 batch=8 device=0 workers=2 name=eksperimen4_dataset_asli_roboflow_yolo26m patience=30 cos_lr=True close_mosaic=10 cache=False
+```
+
+---
+
+## Evaluasi Model
+
+### Evaluasi Eksperimen 3
+
+```bash
+yolo task=detect mode=val model=runs/detect/eksperimen3_dataset_asli_roboflow_yolov8s/weights/best.pt data=datasets/rf_exp3_deteksi_sampah_raw/data.yaml device=0 project=outputs/evaluasi name=eksperimen3_dataset_asli_roboflow
+```
+
+### Evaluasi Eksperimen 4
+
+```bash
+yolo task=detect mode=val model=runs/detect/eksperimen4_dataset_asli_roboflow_yolo26m-2/weights/best.pt data=datasets/rf_exp3_deteksi_sampah_raw/data.yaml device=0 project=outputs/evaluasi name=eksperimen4_dataset_asli_roboflow_yolo26m
+```
+
+Output evaluasi akan menghasilkan beberapa file penting:
 
 ```text
-workspace : internship-rpdlx
-project   : deteksi-sampah-r4w18
-version   : 5
-format    : yolov8
-output    : datasets/rf_deteksi_sampah_raw
+confusion_matrix.png
+confusion_matrix_normalized.png
+F1_curve.png
+P_curve.png
+R_curve.png
+PR_curve.png
+results.png
+val_batch0_labels.jpg
+val_batch0_pred.jpg
 ```
 
-Kalau kamu mau mengganti version dataset:
+---
 
-```bat
-python src/download_roboflow_dataset.py --version 4 --overwrite
+## Deteksi Real-Time Menggunakan Kamera
+
+Cek index kamera:
+
+```bash
+python src/check_camera_index.py
 ```
 
-Setelah berhasil, folder dataset mentah akan ada di:
+Jika kamera HP terbaca pada index 1, jalankan:
+
+```bash
+python src/webcam_detection.py --model runs/detect/eksperimen4_dataset_asli_roboflow_yolo26m-2/weights/best.pt --camera 1 --conf 0.20 --show-fps
+```
+
+Jika ingin menggunakan model Eksperimen 3:
+
+```bash
+python src/webcam_detection.py --model runs/detect/eksperimen3_dataset_asli_roboflow_yolov8s/weights/best.pt --camera 1 --conf 0.20 --show-fps
+```
+
+Jika deteksi sulit muncul:
+
+```bash
+python src/webcam_detection.py --model runs/detect/eksperimen4_dataset_asli_roboflow_yolo26m-2/weights/best.pt --camera 1 --conf 0.10 --show-fps
+```
+
+Jika terlalu banyak false positive:
+
+```bash
+python src/webcam_detection.py --model runs/detect/eksperimen4_dataset_asli_roboflow_yolo26m-2/weights/best.pt --camera 1 --conf 0.35 --show-fps
+```
+
+Jika FPS terlalu rendah, gunakan resolusi lebih kecil:
+
+```bash
+python src/webcam_detection.py --model runs/detect/eksperimen4_dataset_asli_roboflow_yolo26m-2/weights/best.pt --camera 1 --conf 0.20 --width 640 --height 480 --show-fps
+```
+
+---
+
+## Format Bounding Box YOLO
+
+Dataset menggunakan format anotasi YOLO:
 
 ```text
-datasets/rf_deteksi_sampah_raw/
+class_id x_center y_center width height
 ```
 
-Strukturnya biasanya:
+Contoh:
 
 ```text
-train/images
-train/labels
-valid/images
-valid/labels
-test/images
-test/labels
-data.yaml
+3 0.512 0.438 0.312 0.420
 ```
+
+Keterangan:
+
+| Nilai | Arti |
+|---|---|
+| class_id | ID kelas objek |
+| x_center | posisi tengah bounding box pada sumbu X |
+| y_center | posisi tengah bounding box pada sumbu Y |
+| width | lebar bounding box |
+| height | tinggi bounding box |
+
+Semua nilai koordinat menggunakan normalisasi dari 0 sampai 1.
 
 ---
 
-# LANGKAH MERAPIKAN CLASS KE 5 KELAS
+## Hasil Utama
 
-## Langkah 7 — Lihat class asli Roboflow
-
-```bat
-python src/inspect_classes.py --data datasets/rf_deteksi_sampah_raw/data.yaml
-```
-
-Tujuannya untuk melihat nama class asli dari dataset.
-
----
-
-## Langkah 8 — Merge/remap class menjadi 5 kelas
-
-```bat
-python src/merge_classes_to_5.py --overwrite
-```
-
-Script ini akan membuat dataset baru:
+Model terbaik berdasarkan mAP50-95:
 
 ```text
-datasets/sampah_5kelas/
+Eksperimen 2 - YOLOv8s Dataset 4 Kelas
+mAP50-95: 0.894
 ```
 
-Dengan class final:
+Model terbaik pada dataset asli Roboflow:
 
 ```text
-plastik
-kertas
-logam
-organik
-lainnya
+Eksperimen 4 - YOLO26m
+mAP50: 0.984
+mAP50-95: 0.843
 ```
 
----
-
-## Langkah 9 — Cek dataset final
-
-```bat
-python src/check_dataset.py --data datasets/sampah_5kelas/data.yaml --show-label-stats
-```
-
-Pastikan outputnya menampilkan jumlah gambar dan label pada split train, valid, dan test.
-
----
-
-# LANGKAH TRAINING YOLOV8
-
-## Langkah 10 — Training model YOLOv8n
-
-Untuk laptop biasa:
-
-```bat
-python src/train.py --data datasets/sampah_5kelas/data.yaml --model yolov8n.pt --epochs 100 --imgsz 640 --batch 8
-```
-
-Kalau laptop kamu kuat atau pakai GPU, boleh coba YOLOv8s:
-
-```bat
-python src/train.py --data datasets/sampah_5kelas/data.yaml --model yolov8s.pt --epochs 100 --imgsz 640 --batch 16
-```
-
-Saran awal:
+Model yang lebih cepat untuk kamera real-time:
 
 ```text
-Gunakan yolov8n.pt dulu karena lebih ringan dan cocok untuk realtime kamera.
+Eksperimen 3 - YOLOv8s
+Inference: sekitar 2.9 ms
 ```
 
----
-
-## Langkah 11 — Lokasi model hasil training
-
-Setelah training selesai, model terbaik ada di:
+Model yang lebih akurat pada dataset asli Roboflow:
 
 ```text
-runs/detect/deteksi_sampah_5kelas/weights/best.pt
-```
-
-File penting:
-
-```text
-best.pt  -> model terbaik
-last.pt  -> model epoch terakhir
-```
-
-Gunakan `best.pt` untuk kamera OpenCV.
-
----
-
-# LANGKAH EVALUASI DAN TESTING
-
-## Langkah 12 — Evaluasi model
-
-```bat
-python src/evaluate.py --model runs/detect/deteksi_sampah_5kelas/weights/best.pt --data datasets/sampah_5kelas/data.yaml
-```
-
-Hasil evaluasi biasanya tersimpan di folder `runs/detect/val`.
-
-Perhatikan metrik:
-
-```text
-precision
-recall
-mAP50
-mAP50-95
-confusion matrix
+Eksperimen 4 - YOLO26m
+Inference: sekitar 6.4 ms
 ```
 
 ---
 
-## Langkah 13 — Prediksi gambar/folder/video
+## Catatan
 
-Contoh prediksi satu gambar:
-
-```bat
-python src/predict_image.py --model runs/detect/deteksi_sampah_5kelas/weights/best.pt --source path\ke\gambar.jpg
-```
-
-Contoh prediksi folder:
-
-```bat
-python src/predict_image.py --model runs/detect/deteksi_sampah_5kelas/weights/best.pt --source datasets/sampah_5kelas/test/images
-```
-
-Output tersimpan di:
-
-```text
-outputs/predict/hasil_prediksi
-```
+File dataset, hasil training, hasil evaluasi, dan model weight tidak dimasukkan ke GitHub karena ukurannya besar. Jika ingin menjalankan project dari awal, pengguna perlu mendownload dataset dari Roboflow dan melakukan training ulang, atau menambahkan file model `best.pt` secara manual.
 
 ---
 
-# LANGKAH INTEGRASI KE KAMERA OPENCV
+## Author
 
-## Langkah 14 — Jalankan kamera
-
-```bat
-python src/webcam_detection.py --model runs/detect/deteksi_sampah_5kelas/weights/best.pt --camera 0 --conf 0.25 --show-fps
-```
-
-Kalau kamera tidak muncul, coba:
-
-```bat
-python src/webcam_detection.py --model runs/detect/deteksi_sampah_5kelas/weights/best.pt --camera 1 --conf 0.25 --show-fps
-```
-
-Tekan tombol:
-
-```text
-q
-```
-
-untuk keluar dari kamera.
-
----
-
-# OPSI CEPAT PAKAI FILE .BAT
-
-Kalau tidak mau mengetik panjang, kamu bisa pakai file di folder `scripts`.
-
-### Setup
-
-```bat
-scripts\setup_windows.bat
-```
-
-### Download dataset
-
-Set API key dulu, lalu:
-
-```bat
-scripts\run_download_windows.bat
-```
-
-### Merge class
-
-```bat
-scripts\run_merge_windows.bat
-```
-
-### Training
-
-```bat
-scripts\run_train_windows.bat
-```
-
-### Kamera
-
-```bat
-scripts\run_camera_windows.bat
-```
-
----
-
-# MASALAH UMUM
-
-## 1. `data.yaml tidak ditemukan`
-
-Berarti dataset belum berhasil didownload atau foldernya tidak sesuai.
-
-Cek:
-
-```text
-datasets/rf_deteksi_sampah_raw/data.yaml
-```
-
-Kalau tidak ada, download ulang dataset.
-
----
-
-## 2. `ROBOFLOW_API_KEY belum ada`
-
-Set API key dulu.
-
-CMD:
-
-```bat
-set ROBOFLOW_API_KEY=ISI_API_KEY_KAMU
-```
-
-PowerShell:
-
-```powershell
-$env:ROBOFLOW_API_KEY="ISI_API_KEY_KAMU"
-```
-
----
-
-## 3. Kamera tidak terbuka
-
-Coba ganti index kamera:
-
-```bat
---camera 1
-```
-
-atau tutup aplikasi lain yang sedang memakai kamera.
-
----
-
-## 4. Training lambat
-
-Gunakan model ringan:
-
-```text
-yolov8n.pt
-```
-
-Kurangi batch:
-
-```bat
---batch 4
-```
-
-Kurangi epoch untuk percobaan:
-
-```bat
---epochs 30
-```
-
----
-
-# ALUR FINAL PROYEK
-
-```text
-Download dataset Roboflow
-        ↓
-Cek class asli
-        ↓
-Merge ke 5 kelas:
-plastik, kertas, logam, organik, lainnya
-        ↓
-Training YOLOv8
-        ↓
-Evaluasi model
-        ↓
-Ambil best.pt
-        ↓
-Integrasi kamera OpenCV
-        ↓
-Deteksi sampah realtime
-```
+Nur Alif Maulana Syafrudin  
+Universitas Dian Nuswantoro  
+Program Studi Teknik Informatika
