@@ -1,0 +1,1 @@
+python src/webcam_detection.py --model runs/detect/deteksi_sampah_4kelas_yolov8s_fast/weights/best.pt --camera 0 --conf 0.10 --show-fps
